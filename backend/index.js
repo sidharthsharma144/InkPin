@@ -78,8 +78,46 @@ mongoose.connect(config.mongoUrl, {
 .catch((err) => {
   console.error("❌ MongoDB connection failed:", err);
 });
+// for login
+app.post("/login", async (req,res)=>{
+    const {email,password}=req.body;
 
+    if(!email){
+        return res.status(400).json({message:"Email is required"});
 
+    }
+    if(!password){
+        return res.status(400).json({message:"Passowrd is required"});
+    }
+    const userInfo = await User.findOne({email:email});
+
+    if(!userInfo){
+        return res.status(400).json({message:"User not found"});
+    }
+    if(userInfo.email == email && userInfo.password==password){
+        const user = {user:userInfo};
+        const accessToken = jwt.sign(user,process.env.ACCESS_TOKEN_SECRET,{
+            expiresIn:"36000m",
+        })
+        return res.json({
+            error:false,
+            message:"Login Succesful",
+            email,
+            accessToken,
+        })
+    }
+    else{
+        return res.status(400).json({
+            error:false,
+            message:"Invalid Credentials",
+        })
+    }
+}
+)
+// for adding notes
+app.post("/add-note", authenticationToken, async (req,res)=>{
+    
+})
 app.listen(8000);
 
 module.exports=app;
