@@ -137,7 +137,7 @@ export const Home = () => {
     <>
       {/* Background Image */}
       <div
-        className="fixed inset-0 z-0 bg-cover bg-center opacity-45"
+        className="fixed inset-0 z-0 bg-cover bg-center opacity-64 "
         style={{ backgroundImage: `url(${AddNotesImg})` }}
       ></div>
 

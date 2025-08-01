@@ -23,8 +23,8 @@ const Navbar = ({userInfo, onSearchNote, handleClearSearch}) => {
   }
 
   return (
-    <div className='bg-white flex items-center justify-between px-20 drop-shadow'>
-  <h2 className='text-xl font-medium text-black py-5'>Notes</h2>
+    <div className='bg-white flex items-center justify-between px-20 drop-shadow cursor-pointer'>
+  <h2 className='text-xl font-medium text-black py-5 '>Notes</h2>
 
   <Searchbar
     value={searchQuery}
