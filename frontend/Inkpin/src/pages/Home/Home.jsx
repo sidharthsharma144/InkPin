@@ -9,6 +9,7 @@ import axiosInstance from '../../utils/axiosInstance';
 import Toast from '../../components/ToastMessage/Toast';
 import EmptyCard from '../../components/EmptyCard/EmptyCard';
 import AddNotesImg from "../../assets/images/add-notes.jpg";
+import NoDataImg from "../../assets/images/nodata.png";
 
 export const Home = () => {
   const [openAddEditModal, setopenAddEditModal] = useState({
@@ -25,6 +26,8 @@ export const Home = () => {
 
   const [userInfo, setUserInfo] = useState(null);
   const [allNotes, setAllNotes] = useState([]);
+
+  const [isSearch, setIsSearch]=useState(false)
 
   const navigate = useNavigate();
 
@@ -84,7 +87,47 @@ export const Home = () => {
       console.log("An unexpected error occurred. Please try again.");
     }
   };
+  
+  //SEARCH NOTES
+  const onSearchNote = async(query)=>{
+    try{
+      const response = await axiosInstance.get("/search-notes",
+        {
+          params:{query},
 
+        }
+      )
+      if(response.data&& response.data.notes){
+        setIsSearch(true);
+        setAllNotes(response.data.notes);
+      }
+
+    }
+    catch(error){
+      console.log(error);
+
+    }
+  }
+  const updateIsPinned = async (noteData) => {
+  const noteId = noteData._id;
+  try {
+    const response = await axiosInstance.put(`/update-note-pinned/${noteId}`, {
+      isPinned: !noteData.isPinned, // ✅ correct toggle
+    });
+    if (response.data && response.data.note) {
+      triggerToast("Note Updated Successfully");
+      fetchAllNotes(); // ✅ correct function
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+
+  const handleClearSearch=()=>{
+    setIsSearch(false);
+    fetchAllNotes();
+  }
   useEffect(() => {
     fetchAllNotes();
     getUserInfo();
@@ -100,7 +143,7 @@ export const Home = () => {
 
       {/* Content Over Background */}
       <div className="relative z-10">
-        <Navbar userInfo={userInfo} />
+        <Navbar userInfo={userInfo} onSearchNote={onSearchNote} handleClearSearch={handleClearSearch} />
 
         <div className='container mx-auto px-10'>
           {allNotes.length > 0 ? (
@@ -115,7 +158,7 @@ export const Home = () => {
                   isPinned={item.isPinned}
                   onEdit={() => handleEdit(item)}
                   onDelete={() => deleteNote(item)}
-                  onPinNote={() => {}}
+                  onPinNote={() => {updateIsPinned(item)}}
                 />
               ))}
             </div>
@@ -123,7 +166,8 @@ export const Home = () => {
             !openAddEditModal.isShown && (
               <div className="flex justify-center mt-10">
                 <EmptyCard
-                  message={`Start creating your first note! Click the 'Add' button to jot down your thoughts, ideas and reminders. Let's get started!`}
+                imgSrc={isSearch?NoDataImg:AddNotesImg}
+                  message={isSearch? `Oops! No notes found matching your search`: `Start creating your first note! Click the 'Add' button to jot down your thoughts, ideas and reminders. Let's get started!`}
                 />
               </div>
             )
@@ -147,7 +191,9 @@ export const Home = () => {
             setopenAddEditModal({ isShown: false, type: "add", data: null });
           }}
           ariaHideApp={false}
-          style={{ overlay: { backgroundColor: "rgba(0,0,0,0.2)" } }}
+          style={{ overlay: { backgroundColor: "rgba(0,0,0,0.2)",
+            zIndex: 50, 
+           } }}
           contentLabel=""
           className="w-[90%] sm:w-[60%] lg:w-[40%] max-h-[80vh] bg-white rounded-md mx-auto mt-14 p-5 overflow-scroll"
         >

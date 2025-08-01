@@ -38,6 +38,7 @@ const AddEdit = ({ noteData, type, onClose, getAllNotes, showToastMessage }) => 
   };
 
   const editNote = async () => {
+    const noteId = noteData._id
     try {
       const response = await axiosInstance.put(`/edit-note/${noteData._id}`, {
         title,
