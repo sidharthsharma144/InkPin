@@ -69,18 +69,35 @@ export const Home = () => {
       console.log("An unexpected error occurred. Please try again.");
     }
   };
+  const delteNote = async (noteData) => {
+  const noteId = noteData._id;
 
+  try {
+    const response = await axiosInstance.delete("/delete-note/" + noteId);
+
+    if (response.data && !response.data.error) {
+      // ✅ Corrected function name here
+      triggerToast("Note Deleted Successfully", "delete");
+
+      // ✅ Update the UI immediately
+      setAllNotes((prevNotes) => prevNotes.filter(note => note._id !== noteId));
+    }
+  } catch (error) {
+    console.log("An unexpected error occurred. Please try again.");
+  }
+};
   useEffect(() => {
     fetchAllNotes();
     getUserInfo();
   }, []);
+
 
   return (
     <>
       <Navbar userInfo={userInfo} />
 
       <div className='container mx-auto px-10 '>
-        <div className='grid grid-cols-3 gap-4 mt-8 justify-center'>
+       {allNotes.length>0? <div className='grid grid-cols-3 gap-4 mt-8 justify-center'>
           {allNotes.map((item) => (
             <Notecard
               key={item._id}
@@ -90,11 +107,15 @@ export const Home = () => {
               tags={item.tags}
               isPinned={item.isPinned}
               onEdit={() => handleEdit(item)}
-              onDelete={() => {}}
+              onDelete={() => {delteNote(item)}}
               onPinNote={() => {}}
             />
           ))}
         </div>
+        ):(
+          <EmptyCard />
+        )
+      }
       </div>
 
       <button
