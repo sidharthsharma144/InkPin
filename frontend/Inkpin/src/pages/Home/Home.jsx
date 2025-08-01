@@ -7,6 +7,8 @@ import Modal from "react-modal";
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../utils/axiosInstance';
 import Toast from '../../components/ToastMessage/Toast';
+import EmptyCard from '../../components/EmptyCard/EmptyCard';
+import AddNotesImg from "../../assets/images/add-notes.jpg";
 
 export const Home = () => {
   const [openAddEditModal, setopenAddEditModal] = useState({
@@ -69,88 +71,105 @@ export const Home = () => {
       console.log("An unexpected error occurred. Please try again.");
     }
   };
-  const delteNote = async (noteData) => {
-  const noteId = noteData._id;
 
-  try {
-    const response = await axiosInstance.delete("/delete-note/" + noteId);
-
-    if (response.data && !response.data.error) {
-      // ✅ Corrected function name here
-      triggerToast("Note Deleted Successfully", "delete");
-
-      // ✅ Update the UI immediately
-      setAllNotes((prevNotes) => prevNotes.filter(note => note._id !== noteId));
+  const deleteNote = async (noteData) => {
+    const noteId = noteData._id;
+    try {
+      const response = await axiosInstance.delete("/delete-note/" + noteId);
+      if (response.data && !response.data.error) {
+        triggerToast("Note Deleted Successfully", "delete");
+        setAllNotes((prevNotes) => prevNotes.filter(note => note._id !== noteId));
+      }
+    } catch (error) {
+      console.log("An unexpected error occurred. Please try again.");
     }
-  } catch (error) {
-    console.log("An unexpected error occurred. Please try again.");
-  }
-};
+  };
+
   useEffect(() => {
     fetchAllNotes();
     getUserInfo();
   }, []);
 
-
   return (
     <>
-      <Navbar userInfo={userInfo} />
+      {/* Background Image */}
+      <div
+        className="fixed inset-0 z-0 bg-cover bg-center opacity-45"
+        style={{ backgroundImage: `url(${AddNotesImg})` }}
+      ></div>
 
-      <div className='container mx-auto px-10 '>
-       {allNotes.length>0? <div className='grid grid-cols-3 gap-4 mt-8 justify-center'>
-          {allNotes.map((item) => (
-            <Notecard
-              key={item._id}
-              title={item.title}
-              date={item.createdOn}
-              content={item.content}
-              tags={item.tags}
-              isPinned={item.isPinned}
-              onEdit={() => handleEdit(item)}
-              onDelete={() => {delteNote(item)}}
-              onPinNote={() => {}}
-            />
-          ))}
+      {/* Content Over Background */}
+      <div className="relative z-10">
+        <Navbar userInfo={userInfo} />
+
+        <div className='container mx-auto px-10'>
+          {allNotes.length > 0 ? (
+            <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-8'>
+              {allNotes.map((item) => (
+                <Notecard
+                  key={item._id}
+                  title={item.title}
+                  date={item.createdOn}
+                  content={item.content}
+                  tags={item.tags}
+                  isPinned={item.isPinned}
+                  onEdit={() => handleEdit(item)}
+                  onDelete={() => deleteNote(item)}
+                  onPinNote={() => {}}
+                />
+              ))}
+            </div>
+          ) : (
+            !openAddEditModal.isShown && (
+              <div className="flex justify-center mt-10">
+                <EmptyCard
+                  message={`Start creating your first note! Click the 'Add' button to jot down your thoughts, ideas and reminders. Let's get started!`}
+                />
+              </div>
+            )
+          )}
         </div>
-        ):(
-          <EmptyCard />
-        )
-      }
-      </div>
 
-      <button
-        className='w-16 h-16 flex items-center justify-center rounded-2xl bg-blue-600 hover:bg-blue-700 absolute right-10 bottom-10'
-        onClick={() => {
-          setopenAddEditModal({ isShown: true, type: "add", data: null });
-        }}
-      >
-        <MdAdd className='text-[32px] text-white' />
-      </button>
+        {/* Add Note Button */}
+        <button
+          className='w-16 h-16 flex items-center justify-center rounded-2xl bg-blue-600 hover:bg-blue-700 fixed right-10 bottom-10 z-20'
+          onClick={() => {
+            setopenAddEditModal({ isShown: true, type: "add", data: null });
+          }}
+        >
+          <MdAdd className='text-[32px] text-white' />
+        </button>
 
-      <Modal
-        isOpen={openAddEditModal.isShown}
-        onRequestClose={() => {}}
-        style={{ overlay: { backgroundColor: "rgba(0,0,0,0.2)" } }}
-        contentLabel=""
-        className="w-[40%] max-h-3/4 bg-white rounded-md mx-auto mt-14 p-5 overflow-scroll"
-      >
-        <AddEdit
-          type={openAddEditModal.type}
-          noteData={openAddEditModal.data}
-          getAllNotes={fetchAllNotes}
-          showToastMessage={triggerToast}
-          onClose={() => {
+        {/* Modal for Add/Edit */}
+        <Modal
+          isOpen={openAddEditModal.isShown}
+          onRequestClose={() => {
             setopenAddEditModal({ isShown: false, type: "add", data: null });
           }}
-        />
-      </Modal>
+          ariaHideApp={false}
+          style={{ overlay: { backgroundColor: "rgba(0,0,0,0.2)" } }}
+          contentLabel=""
+          className="w-[90%] sm:w-[60%] lg:w-[40%] max-h-[80vh] bg-white rounded-md mx-auto mt-14 p-5 overflow-scroll"
+        >
+          <AddEdit
+            type={openAddEditModal.type}
+            noteData={openAddEditModal.data}
+            getAllNotes={fetchAllNotes}
+            showToastMessage={triggerToast}
+            onClose={() => {
+              setopenAddEditModal({ isShown: false, type: "add", data: null });
+            }}
+          />
+        </Modal>
 
-      <Toast
-        isShown={showToastMsg.isShown}
-        message={showToastMsg.message}
-        type={showToastMsg.type}
-        onClose={handleCloseToast}
-      />
+        {/* Toast Message */}
+        <Toast
+          isShown={showToastMsg.isShown}
+          message={showToastMsg.message}
+          type={showToastMsg.type}
+          onClose={handleCloseToast}
+        />
+      </div>
     </>
   );
 };
