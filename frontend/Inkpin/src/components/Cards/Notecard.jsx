@@ -1,5 +1,6 @@
 import React from 'react';
 import { MdDelete, MdOutlinePushPin, MdCreate } from "react-icons/md";
+import moment from 'moment';
 
 const Notecard = ({
   title,
@@ -17,7 +18,7 @@ const Notecard = ({
       <div className='flex items-center justify-between'>
         <div>
           <h6 className='text-sm font-medium'>{title}</h6>
-          <span className='text-xs text-slate-500'>{date}</span>
+          <span className='text-xs text-slate-500'>{moment(date).format("Do MMM YYYY")}</span>
         </div>
         <MdOutlinePushPin
           className={`icon-btn cursor-pointer transition-colors ${
@@ -32,7 +33,7 @@ const Notecard = ({
 
       {/* Tags & Actions */}
       <div className='flex items-center justify-between mt-3'>
-        <div className='text-xs text-slate-500'>{tags}</div>
+        <div className='text-xs text-slate-500'>{tags.map((item)=> `#${item}`)}</div>
         <div className='flex items-center gap-3'>
           <MdCreate
             className="icon-btn hover:text-green-600 cursor-pointer"

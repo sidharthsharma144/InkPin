@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
-import { Link } from 'react-router-dom';
 import Passwordinput from '../../components/Input/Passwordinput';
 import { validateEmail } from '../../utils/helper';
+import axiosInstance from '../../utils/axiosInstance'; // ✅ Make sure this path is correct
 
 const SignUp = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false); // Optional UX
+  const navigate = useNavigate();
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -28,10 +31,36 @@ const SignUp = () => {
       return;
     }
 
-    // Reset error
     setError('');
+    setLoading(true); // Set loading while waiting for API
 
-    // TODO: Submit signup data to backend or Firebase here
+    try {
+      const response = await axiosInstance.post('/create-account', {
+        fullName: name,
+        email,
+        password,
+      });
+
+      if (response.data?.error) {
+        setError(response.data.message);
+        return;
+      }
+
+      if (response.data?.accessToken) {
+        localStorage.setItem('token', response.data.accessToken);
+        navigate('/dashboard');
+      } else {
+        setError("Signup successful but token missing. Please login.");
+      }
+    } catch (error) {
+      if (error.response?.data?.message) {
+        setError(error.response.data.message);
+      } else {
+        setError('An unexpected error occurred. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -66,13 +95,17 @@ const SignUp = () => {
 
             {error && <p className="text-red-500 text-xs pb-1">{error}</p>}
 
-            <button type="submit" className="btn-primary">
-              Sign Up
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={loading}
+            >
+              {loading ? 'Signing Up...' : 'Sign Up'}
             </button>
 
             <p className="text-sm text-center mt-4">
               Already have an account?{' '}
-              <Link to="/login" className="">Login</Link>
+              <Link to="/login" className="text-blue-500 hover:underline">Login</Link>
             </p>
           </form>
         </div>
